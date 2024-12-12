@@ -9,12 +9,12 @@ class BaseModel(db_wrapper.Model):
     pass
 
 class UnitOrg(BaseModel):
-    nama = pw.CharField(max_length=50)
+    nama = pw.CharField(max_length=100)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
     
 class Proyek(BaseModel):
-    nama = pw.CharField(max_length=50)
+    nama = pw.CharField(max_length=100)
     unit = pw.ForeignKeyField(UnitOrg)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
@@ -22,6 +22,7 @@ class Proyek(BaseModel):
     muser = pw.CharField(null=True)
 
 class Pekerjaan(BaseModel):
+    proyek = pw.ForeignKeyField(Proyek)
     uraian = pw.CharField(max_length=250)
     satuan = pw.CharField(max_length=20, null=True)
     volume = pw.FloatField(default=0)
@@ -104,7 +105,6 @@ class Notes(BaseModel):
 
 class Foto(BaseModel):
     '''Foto-foto object'''
-    id = pw.CharField(primary_key=True, max_length=22, default=shortuuid.uuid)
     username = pw.CharField(max_length=20)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     fname = pw.CharField(max_length=25)

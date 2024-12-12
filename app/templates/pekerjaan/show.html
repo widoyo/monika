@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Pekerjaan: {{ ctx.task.uraian }}</h2>
+<h3>Ringkasan Kemajuan</h3>
+<h3>Realisasi</h3>
+<table class="table">
+    <tbody>
+    {% for t in ctx.task.realisasi_set %}
+    {% endfor %}
+    </tbody>
+</table>
+
+<h3>Rencana</h3>
+<table class="table">
+    <tbody>
+    {% for r in ctx.task.rencanakontrak_set %}
+    {% endfor %}
+    </tbody>
+</table>
+<h3>Action Plan</h3>
+<table class="table">
+    <tbody>
+    {% for a in ctx.task.rencanapelaksaan_set %}
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

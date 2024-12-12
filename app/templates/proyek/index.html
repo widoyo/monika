@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+{% for p in ctx.proyeks %}
+{{ p.nama }}
+{% else %}
+belum ada proyek
+{% endfor %}
+{% endblock %}

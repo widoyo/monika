@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<table class="table">
+<thead>
+    <tr>
+        <th>Uraian</th>
+        <th>Satuan</th>
+        <th>Volume</th>
+        <th>Bobot (%)</th>
+    </tr>
+</thead>
+<tbody>
+    {% for p in ctx.proyek.pekerjaan_set %}
+    <tr>
+        <td><a href="/task/{{ p.id }}">{{ p.uraian }}</a></td>
+        <td>{{ p.satuan }}</td>
+        <td>{{ p.volume }}</td>
+        <td>{{ p.bobot }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+</table>
+{% endblock %}

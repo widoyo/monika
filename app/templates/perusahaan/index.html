@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container col-xl-10 col-xxl-8 px-4 py-5">
+    <div class="row align-items-center g-lg-5 py-5">
+        <div class="col-lg-7 text-center text-lg-start">
+            <h1 class="display-4 fw-bold lh-1 text-body-emphasis mb-3">Perusahaan</h1>
+            <p class="col-lg-10 fs-4">Berikut adalah daftar perusahaan yang terdaftar di sistem kami.</p>
+        </div>
+        <div class="col-md-10 mx-auto col-lg-5">
+            <form action="/perusahaan" method="GET" class="p-4 p-md-5 border rounded-3 bg-body-tertiary">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="floatingInput" name="search" placeholder="Search">
+                    <label for="floatingInput">Search</label>
+                </div>
+                <button class="w-100 btn btn-lg btn-primary" type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+
+    {% if perusahaan %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th scope="col">ID</th>
+                <th scope="col">Nama Perusahaan</th>
+                <th scope="col">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in perusahaan %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>{{ p.nama_perusahaan }}</td>
+                <td><a href="/perusahaan/{{ p.id }}" class="btn btn-info">Detail</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Tidak ada data perusahaan ditemukan.</p>
+    {% endif %}
+{% endblock %}

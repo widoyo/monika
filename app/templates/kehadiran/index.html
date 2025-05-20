@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+  <h1>Daftar Kehadiran</h1>
+  {% if current_user.perusahaan %}
+  {% include 'kehadiran/_form_absen.html' %}
+  {% endif %}
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Nama</th>
+        <th>Tanggal</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for kehadiran in ctx.kehadiran_list %}
+      <tr>
+        <td>{{ loop.index }}</td>
+        <td>{{ kehadiran.username }}</td>
+        <td>{{ kehadiran.cdate }}</td>
+        <td>{{ kehadiran.status }}</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="4">Tidak ada data kehadiran.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

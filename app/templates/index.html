@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
 <h1>Homepage</h1>
+{{ current_user.username }}, <a href="/logout">Logout</a>
 {% endblock %}

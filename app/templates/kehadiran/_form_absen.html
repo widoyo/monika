@@ -1,0 +1,27 @@
+<form action="/kehadiran/klok" method="POST">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="lonlat" id="lonlat">
+    <input type="hidden" name="status" value="{% if %}{%%}{%%}">
+    <input type="hidden" name="location_name" id="location_name">
+    <div class="form-floating mb-3">
+        <input type="text" class="form-control" id="floatingInput" name="search" placeholder="Search">
+        <label for="floatingInput">Search</label>
+    </div>
+    <button id="id_submit" class="w-100 btn btn-lg btn-primary disabled" type="submit">Search</button>
+</form>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            const lonlat = position.coords.longitude + ',' + position.coords.latitude;
+            document.getElementById('lonlat').value = lonlat;
+            document.getElementById('id_submit').classList.remove('disabled');
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('location_name').value = data.display_name || '';
+                });
+        });
+    }
+});
+</script>

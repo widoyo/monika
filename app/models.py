@@ -8,6 +8,18 @@ from app import db_wrapper
 class BaseModel(db_wrapper.Model):
     pass
 
+class Perusahaan(BaseModel):
+    '''Perusahaan'''
+    nama = pw.CharField(max_length=100)
+    kategori = pw.CharField(max_length=20, null=True) # kontraktor|supervisi
+    alamat = pw.CharField(max_length=250, null=True)
+    telepon = pw.CharField(max_length=20, null=True)
+    fax = pw.CharField(max_length=20, null=True)
+    email = pw.CharField(max_length=50, null=True)
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
+    
+    
 class UnitOrg(BaseModel):
     nama = pw.CharField(max_length=100)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
@@ -67,6 +79,7 @@ class User(BaseModel, UserMixin):
     username = pw.CharField(max_length=20, unique=True, index=True)
     password = pw.CharField(max_length=100)
     unitorg = pw.ForeignKeyField(UnitOrg, null=True, default=None)
+    perusahaan = pw.ForeignKeyField(Perusahaan, null=True, default=None)
     is_adm = pw.BooleanField(default=False)
     is_supervisi = pw.BooleanField(default=False)
     last_login = pw.DateTimeField(null=True)
@@ -74,7 +87,7 @@ class User(BaseModel, UserMixin):
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     
     def check_password(self, password):
-        return checkpw(password.encode(), self.password.encode())
+        return checkpw(password.encode(), self.password if isinstance(self.password, bytes) else self.password.encode())
     
     def set_password(self, password):
         self.password = hashpw(password.encode('utf-8'), gensalt())
@@ -111,3 +124,18 @@ class Foto(BaseModel):
     msg = pw.TextField(null=True)
 
 
+class Kehadiran(BaseModel):
+    '''Kehadiran user'''
+    username = pw.CharField(max_length=20)
+    ll = pw.CharField(max_length=50, null=True) # lokasi
+    status = pw.CharField(max_length=20) # masuk|keluar
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    keterangan = pw.TextField(null=True)
+    ip = pw.CharField(max_length=20, null=True)
+    user_agent = pw.CharField(max_length=100, null=True)
+    
+    class Meta:
+        indexes = (
+            (('username',), False),
+            (('username', 'cdate'), False),
+        )

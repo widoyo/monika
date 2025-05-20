@@ -1,11 +1,15 @@
-from os import environ
+from dotenv import load_dotenv
+from os import getenv
 
-DBUSER = environ.get('DB_USER')
-DBNAME = environ.get('DB_NAME')
-DBPORT = environ.get('DB_PORT')
-DBHOST = environ.get('DB_HOST')
-DBPASS = environ.get('DB_PASSWORD')
-SECRET_KEY = environ.get('SECRET')
+load_dotenv()
+
+
+DBUSER = getenv('DB_USER')
+DBNAME = getenv('DB_NAME')
+DBPORT = getenv('DB_PORT')
+DBHOST = getenv('DB_HOST')
+DBPASS = getenv('DB_PASS')
+SECRET_KEY = getenv('SECRET')
 
 DATABASE = {
     'engine': 'playhouse.pool.PooledPostgresqlDatabase',

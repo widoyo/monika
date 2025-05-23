@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_required, current_user
 import datetime
 from peewee import fn
@@ -12,15 +12,9 @@ kehadiran_bp = Blueprint('kehadiran', __name__, url_prefix='/kehadiran')
 def index():
     """Kehadiran user"""
     today = datetime.datetime.now().date()
-    if current_user.is_adm:
-        kehadiran_list = Kehadiran.select().order_by(Kehadiran.cdate.desc())
-    elif current_user.is_supervisi:
-        
-        kehadiran_list = Kehadiran.select().where(Kehadiran.unitorg == current_user.unitorg).order_by(Kehadiran.cdate.desc())
-    else:
-        kehadiran_list = Kehadiran.select().where(Kehadiran.username == current_user.username, fn.DATE(Kehadiran.cdate) == today).order_by(Kehadiran.cdate.desc())
+    kehadiran = Kehadiran.select().where(Kehadiran.username == current_user.username, fn.DATE(Kehadiran.cdate) == today).first()
     ctx = {
-        'kehadiran_list': kehadiran_list,
+        'kehadiran': kehadiran,
         'title': 'Kehadiran'
     }
     return render_template('kehadiran/index.html', ctx=ctx)
@@ -30,8 +24,18 @@ def index():
 @login_required
 def klok():
     """Kehadiran user"""
+    if request.form.get('id_kehadiran'):
+        # update
+        absen = Kehadiran.get(int(request.form.get('id_kehadiran')))
+        absen.keluar = datetime.datetime.now()
+        absen.keterangan = request.form.get('lokasi')
+        absen.ll = request.form.get('lonlat')
+        absen.save()
+        return redirect('/')
     absen = Kehadiran.create(
         username=current_user.username,
-        status='in',
-        ll=request.form.get('ll'))    
-    return redirect('/kehadiran')
+        masuk=datetime.datetime.now(),
+        status='masuk',
+        keterangan=request.form.get('lokasi'),
+        ll=request.form.get('lonlat'))    
+    return redirect(url_for('homepage'))

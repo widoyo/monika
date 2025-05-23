@@ -6,7 +6,8 @@ import peewee as pw
 from app import db_wrapper
 
 class BaseModel(db_wrapper.Model):
-    pass
+    class Meta:
+        database = db_wrapper.database  # Ensure db_wrapper has a 'database' attribute
 
 class Perusahaan(BaseModel):
     '''Perusahaan'''
@@ -91,7 +92,7 @@ class User(BaseModel, UserMixin):
     
     def set_password(self, password):
         self.password = hashpw(password.encode('utf-8'), gensalt())
-        self.save()
+        self.save() # 
 
 class Notes(BaseModel):
     '''Komentar/Catatan terhadap'''
@@ -128,6 +129,8 @@ class Kehadiran(BaseModel):
     '''Kehadiran user'''
     username = pw.CharField(max_length=20)
     ll = pw.CharField(max_length=50, null=True) # lokasi
+    masuk = pw.DateTimeField(null=True)
+    keluar = pw.DateTimeField(null=True)
     status = pw.CharField(max_length=20) # masuk|keluar
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     keterangan = pw.TextField(null=True)
@@ -139,3 +142,22 @@ class Kehadiran(BaseModel):
             (('username',), False),
             (('username', 'cdate'), False),
         )
+    
+    @property
+    def late(self):
+        '''apakah terlambat'''
+        ref = self.masuk.replace(hour=8, minute=0)
+        if self.masuk.hour < 8:
+            return (0, 0, 0)
+        delta = self.masuk - ref
+        total_seconds = int(delta.total_seconds())
+        hours = total_seconds // 3600
+        minutes = (total_seconds % 3600) // 60
+        return (hours, minutes, total_seconds)
+
+    @property
+    def is_inside(self, tgl=datetime.datetime.now().date):
+        '''apakah user sudah checkin'''
+        return not self.keluar
+        
+        

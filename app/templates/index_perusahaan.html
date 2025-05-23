@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-body">
+        <h5 class="card-title">Kehadiran</h5>
+        {% if ctx.kehadiran %}
+        <i class="bi bi-clock me-1"></i> {{ ctx.kehadiran.masuk.strftime('%d %b %H:%M') }}<br>
+        <i class="bi bi-geo-alt me-1"></i> {{ ctx.kehadiran.keterangan }}<br>
+        {% endif %}
+        {% if ctx.form_absen != '' %}
+        {% include ctx.form_absen %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card mb-3">
+      <div class="card-body">
+        <!-- Card kedua, tambahkan konten di sini -->
+        <h5 class="card-title">Card Kedua</h5>
+        <p>Isi card kedua di sini.</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

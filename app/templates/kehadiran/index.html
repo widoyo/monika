@@ -2,32 +2,14 @@
 
 {% block content %}
 
-  <h1>Daftar Kehadiran</h1>
+  <h1>Absensi</h1>
   {% if current_user.perusahaan %}
-  {% include 'kehadiran/_form_absen.html' %}
+  {% if not ctx.kehadiran %}
+  {% include 'kehadiran/_form_absen_masuk.html' %}
+  {% elif ctx.kehadiran.is_inside %}
+  Masuk: {{ ctx.kehadiran.masuk }}<br>
+  Lokasi: {{ ctx.kehadiran.ll }}
+  {% include 'kehadiran/_form_absen_keluar.html' %}
   {% endif %}
-  <table>
-    <thead>
-      <tr>
-        <th>No</th>
-        <th>Nama</th>
-        <th>Tanggal</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for kehadiran in ctx.kehadiran_list %}
-      <tr>
-        <td>{{ loop.index }}</td>
-        <td>{{ kehadiran.username }}</td>
-        <td>{{ kehadiran.cdate }}</td>
-        <td>{{ kehadiran.status }}</td>
-      </tr>
-      {% else %}
-      <tr>
-        <td colspan="4">Tidak ada data kehadiran.</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% endif %}
 {% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="row">
+    <div class="col">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Kehadiran</h5>
+                {% for day, items in ctx.grouped_kehadiran|dictsort(reverse=True) %}
+                <h5>{{ day.strftime('%d %b') }}</h5>
+                <ul>
+                    {% for k in items %}
+                    <li>{{ k.username }} - Masuk: <span class="text-{% if k.late %}danger{% else %}success{% endif %}">{{ k.masuk|strftime("%H:%M") }}</span> - Keluar: {{ k.keluar|strftime("%H:%M") }}</li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p>Tidak ada data kehadiran bulan ini.</p>
+                {% endfor %}
+                    </tbody>         
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}</div>

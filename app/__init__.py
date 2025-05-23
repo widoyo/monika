@@ -1,18 +1,19 @@
 from flask import Flask, render_template, request, url_for, redirect, flash
-from flask_login import LoginManager, current_user, login_user, logout_user, login_required
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required  # type: ignore
 from flask_wtf.csrf import CSRFProtect
 from wtforms.validators import DataRequired
 from urllib.parse import urlparse, urljoin
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from flask_wtf import FlaskForm
 import datetime
+import peewee as pw
 
 from playhouse.flask_utils import FlaskDB
 
 db_wrapper = FlaskDB()
 
 login_manager = LoginManager()
-login_manager.login_view = 'login'
+login_manager.login_view = 'login'  # type: ignore
 login_manager.login_message = 'Silakan login untuk mengakses...'
 
 csrf = CSRFProtect()
@@ -50,13 +51,22 @@ def create_app():
     csrf.init_app(app)
     login_manager.init_app(app)
     
-    from app.models import User
+    @app.template_filter('strftime')
+    def _jinja2_filter_datetime(value, fmt=None):
+        if not value:
+            return ''
+        if fmt is None:
+            fmt = '%d %b %Y'
+        return value.strftime(fmt)
+
+    from app.models import User, Kehadiran
+    from peewee import DoesNotExist
 
     @login_manager.user_loader
     def load_user(user_id):
         try:
             return User.get(user_id)
-        except User.DoesNotExist:
+        except DoesNotExist:
             return None
     
     register_blueprint(app)
@@ -67,20 +77,17 @@ def create_app():
             return redirect(url_for('homepage'))
         form = LoginForm()
         next = get_redirect_target()
-        print('login', app.config['SECRET_KEY'])
         if form.validate_on_submit():
-            print('validate_on_submit')
             try:
                user = User.get(User.username==form.username.data)
-            except User.DoesNotExist:
+            except DoesNotExist:
                 flash('username atau password keliru')
                 return redirect(url_for('login'))
             if user is None or not user.check_password(form.password.data):
                 flash('username atau password keliru')
                 return redirect(url_for('login'))
-            
+                
             login_user(user)
-            print('login_user')
             user.last_login = datetime.datetime.now()
             user.save()
             return redirect_back('homepage')
@@ -98,7 +105,49 @@ def create_app():
     @app.route('/')
     @login_required
     def homepage():
-        return render_template('index.html')    
+        """Halaman utama"""
+        template_name = 'index.html'
+        ctx = {
+            'title': 'Dashboard',
+            'now': datetime.datetime.now()
+        }
+        if current_user.is_adm:
+            template_name = 'index_adm.html'
+            today = datetime.datetime.now().date()
+            first_day = today.replace(day=1)
+            # Get all Kehadiran for this month
+            kehadiran_qs = (Kehadiran
+                .select()
+                .where(
+                    (pw.fn.DATE(Kehadiran.cdate) >= first_day) &
+                    (pw.fn.DATE(Kehadiran.cdate) <= today)
+                )
+                .order_by(Kehadiran.cdate.desc())
+            )
+
+            # Group by day for template
+            from collections import defaultdict
+            grouped = defaultdict(list)
+            for k in kehadiran_qs:
+                day = k.cdate.date()
+                grouped[day].append(k)
+
+            ctx['grouped_kehadiran'] = dict(grouped)
+        elif current_user.is_supervisi:
+            template_name = 'index_supervisi.html'
+        elif current_user.perusahaan:
+            template_name = 'index_perusahaan.html'
+            kehadiran = Kehadiran.select().where(Kehadiran.username == current_user.username, pw.fn.DATE(Kehadiran.cdate) == datetime.datetime.now().date()).first()
+            form_absen = ''
+            if not kehadiran:
+                form_absen = 'kehadiran/_form_absen_masuk.html'
+            elif kehadiran.is_inside:
+                if datetime.datetime.now() - kehadiran.masuk >= datetime.timedelta(hours=1):
+                    form_absen = 'kehadiran/_form_absen_keluar.html'
+            ctx['form_absen'] = form_absen                
+            ctx['kehadiran'] = kehadiran
+            
+        return render_template(template_name, ctx=ctx)
     
     return app
 

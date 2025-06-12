@@ -87,6 +87,7 @@ class User(BaseModel, UserMixin):
     last_login = pw.DateTimeField(null=True)
     active = pw.BooleanField(default=True)
     cdate = pw.DateTimeField(default=datetime.datetime.now)
+    jabatan = pw.CharField(max_length=50, null=True)  # Jabatan di perusahaan
     
     def check_password(self, password):
         return checkpw(password.encode(), self.password if isinstance(self.password, bytes) else self.password.encode())

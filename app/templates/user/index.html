@@ -6,8 +6,9 @@
         <tr>
             <th>No</th>
             <th>Full Name</th>
+            <th>Jabatan</th>
             <th>Username</th>
-            <th>Perusahaan</th>
+            <th>Penyedia Jasa</th><!-- konsultan SUpervisi/Kontraktor-->
         </tr>
     </thead>
     <tbody>
@@ -15,8 +16,9 @@
         <tr>
             <td>{{ loop.index }}</td>
             <td>{{ user.fullname }}</td>
+            <td></td>
             <td>{{ user.username }}</td>
-            <td>{{ user.perusahaan.nama }}</td>
+            <td></td>
         </tr>
         {% endfor %}
     </tbody>

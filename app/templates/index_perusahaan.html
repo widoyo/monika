@@ -6,6 +6,7 @@
     <div class="card mb-3">
       <div class="card-body">
         <h5 class="card-title">Kehadiran</h5>
+        <div class="border border-secondary rounded p-3 mb-3">
         <p>Hari ini: <b>{{ ctx.today.strftime('%d %b %Y') }}</b></p>
         {% if ctx.kehadiran %}
         <p><i class="bi bi-clock me-1"></i> Masuk: <b>{{ ctx.kehadiran.masuk.strftime('%H:%M') }}</b> <span class="text-secondary" id="hour-ago"></span></p>
@@ -16,6 +17,7 @@
         {% if ctx.form_absen != '' %}
         {% include ctx.form_absen %}
         {% endif %}
+        </div>
         <hr>
         Kehadiran bulan <b>{{ ctx.today.strftime('%b %Y') }}</b>:
         <table class="table table-striped">
@@ -24,7 +26,6 @@
               <th>Tanggal</th>
               <th>Masuk</th>
               <th>Keluar</th>
-              <th>Status</th>
             </tr>
           </thead>
           <tbody>
@@ -33,9 +34,6 @@
               <td>{{ d.tanggal }}</td>
               <td>{% if d.masuk %}{{ d.masuk.strftime('%H:%M') }}{% endif %}</td>
               <td>{% if d.keluar %}{{ d.keluar.strftime('%H:%M') }}{% endif %}</td>
-              <td></td>
-              <td></td>
-              <td></td>
             </tr>
             {% endfor %}
           </tbody>

@@ -25,7 +25,7 @@
                     <td></td>
                     <td><a href="/kehadiran/{{ k.username }}">{{ k.username }}</a></td>
                     <td>{{ k.masuk|strftime("%H:%M") }}<br>
-                        <span class="small text-secondary">{{ k.keterangan|truncate(30, True, '...') }}</span>
+                        <span class="small text-secondary" title="{{ k.keterangan }}">{{ k.keterangan|truncate(30, True, '...') }}</span>
                     </td>
                     <td>{{ k.keluar|strftime("%H:%M") }}</td>
                     <td></td>

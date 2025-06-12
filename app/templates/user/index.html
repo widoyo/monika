@@ -16,9 +16,9 @@
         <tr>
             <td>{{ loop.index }}</td>
             <td>{{ user.fullname }}</td>
-            <td></td>
+            <td>{{ user.jabatan }}</td>
             <td>{{ user.username }}</td>
-            <td></td>
+            <td>{% if user.perusahaan %}{% if user.is_supervisi %}Konsultan Supervisi{% else %}Kontraktor{% endif %}{% endif %}</td>
         </tr>
         {% endfor %}
     </tbody>

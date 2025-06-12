@@ -6,13 +6,40 @@
     <div class="card mb-3">
       <div class="card-body">
         <h5 class="card-title">Kehadiran</h5>
+        <p>Hari ini: <b>{{ ctx.today.strftime('%d %b %Y') }}</b></p>
         {% if ctx.kehadiran %}
-        <i class="bi bi-clock me-1"></i> {{ ctx.kehadiran.masuk.strftime('%d %b %H:%M') }}<br>
-        <i class="bi bi-geo-alt me-1"></i> {{ ctx.kehadiran.keterangan }}<br>
+        <p><i class="bi bi-clock me-1"></i> Masuk: <b>{{ ctx.kehadiran.masuk.strftime('%H:%M') }}</b> <span class="text-secondary" id="hour-ago"></span></p>
+        {% endif %}
+        {% if ctx.kehadiran.keluar %}
+        <p><i class="bi bi-clock me-1"></i> Keluar: <b>{{ ctx.kehadiran.keluar.strftime('%H:%M') }}</b></p>
         {% endif %}
         {% if ctx.form_absen != '' %}
         {% include ctx.form_absen %}
         {% endif %}
+        <hr>
+        Kehadiran bulan <b>{{ ctx.today.strftime('%b %Y') }}</b>:
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Masuk</th>
+              <th>Keluar</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in ctx.rekap_kehadiran|reverse %}
+            <tr>
+              <td>{{ d.tanggal }}</td>
+              <td>{% if d.masuk %}{{ d.masuk.strftime('%H:%M') }}{% endif %}</td>
+              <td>{% if d.keluar %}{{ d.keluar.strftime('%H:%M') }}{% endif %}</td>
+              <td></td>
+              <td></td>
+              <td></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -20,10 +47,31 @@
     <div class="card mb-3">
       <div class="card-body">
         <!-- Card kedua, tambahkan konten di sini -->
-        <h5 class="card-title">Card Kedua</h5>
-        <p>Isi card kedua di sini.</p>
+        <h5 class="card-title"></h5>
+        <ul>
+        </ul>
       </div>
     </div>
   </div>
 </div>
+<script>
+function updateHourAgo() {
+  const masukStr = "{{ ctx.kehadiran.masuk.strftime('%Y-%m-%dT%H:%M:%S') if ctx.kehadiran else '' }}";
+  if (!masukStr) return;
+  const masukDate = new Date(masukStr);
+  const now = new Date();
+  let diff = Math.floor((now - masukDate) / 1000);
+  const hours = Math.floor(diff / 3600);
+  diff = diff % 3600;
+  const minutes = Math.floor(diff / 60);
+  let text = '';
+  if (hours > 0) text += hours + ' jam ';
+  text += minutes + ' menit yang lalu';
+  document.getElementById('hour-ago').textContent = '(' + text + ')';
+}
+if (document.getElementById('hour-ago')) {
+  updateHourAgo();
+  setInterval(updateHourAgo, 1000);
+}
+</script>
 {% endblock %}

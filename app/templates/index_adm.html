@@ -6,21 +6,37 @@
     <div class="col">
         <div class="card mb-4">
             <div class="card-body">
-                <h5 class="card-title">Kehadiran</h5>
+                <h5 class="card-title">Kehadiran {{ ctx.today.strftime('%b %Y') }}</h5>
+                <table class="table table-strip">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Person</th>
+                            <th>Masuk</th>
+                            <th>Keluar</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
                 {% for day, items in ctx.grouped_kehadiran|dictsort(reverse=True) %}
-                <h5>{{ day.strftime('%d %b') }}</h5>
-                <ul>
+                <tr class="table-secondary"><td colspan="5">{{ day.strftime('%d %b') }}</td></tr>
                     {% for k in items %}
-                    <li>{{ k.username }} - Masuk: <span class="text-{% if k.late %}danger{% else %}success{% endif %}">{{ k.masuk|strftime("%H:%M") }}</span> - Keluar: {{ k.keluar|strftime("%H:%M") }}</li>
+                    <tr>
+                    <td></td>
+                    <td><a href="/kehadiran/{{ k.username }}">{{ k.username }}</a></td>
+                    <td>{{ k.masuk|strftime("%H:%M") }}</td>
+                    <td>{{ k.keluar|strftime("%H:%M") }}</td>
+                    <td></td>
+                    </tr>
                     {% endfor %}
-                </ul>
+                    </tbody>
                 {% else %}
                 <p>Tidak ada data kehadiran bulan ini.</p>
                 {% endfor %}
-                    </tbody>         
                 </table>
             </div>
         </div>
     </div>
+    <div class="col">&nbsp;</div>
 </div>
 {% endblock %}</div>

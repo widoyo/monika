@@ -79,6 +79,7 @@ class Realisasi(BaseModel):
 class User(BaseModel, UserMixin):
     username = pw.CharField(max_length=20, unique=True, index=True)
     password = pw.CharField(max_length=100)
+    fullname = pw.CharField(max_length=100, null=True)
     unitorg = pw.ForeignKeyField(UnitOrg, null=True, default=None)
     perusahaan = pw.ForeignKeyField(Perusahaan, null=True, default=None)
     is_adm = pw.BooleanField(default=False)

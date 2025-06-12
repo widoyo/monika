@@ -11,7 +11,9 @@ DBHOST = getenv('DB_HOST')
 DBPASS = getenv('DB_PASS')
 SECRET_KEY = getenv('SECRET')
 
-DATABASE = {
+from typing import Dict, Any
+
+DATABASE: Dict[str, Any] = {
     'engine': 'playhouse.pool.PooledPostgresqlDatabase',
     'name': DBNAME,
     'user': DBUSER,

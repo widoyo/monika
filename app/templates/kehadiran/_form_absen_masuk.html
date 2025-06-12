@@ -3,15 +3,30 @@
     <input type="hidden" name="lonlat" id="lonlat">
     <input type="hidden" name="status" value="masuk">
     <input type="hidden" name="location_name" id="location_name">
-    <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="id_waktu" name="waktu" placeholder="waktu">
-        <label for="floatingInput">Waktu</label>
+    <div class="row mb-3 align-items-center flex-nowrap px-3">
+        <div class="col-auto p-0">
+            <input type="text" class="form-control form-control-lg text-center" id="id_waktu" name="waktu" placeholder="waktu" style="width: 180px; font-size: 2rem; font-family: monospace;" readonly>
+        </div>
+        <div class="col-auto p-0 ms-2">
+            <button id="id_submit" class="btn btn-primary btn-lg w-100 disabled" style="white-space: nowrap;">Masuk</button>
+            <small id="id_hint" class="text-secondary d-block" style="display: none;"><em>Tekan dan tahan 2 detik</em></small>
+            <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const submitBtn = document.getElementById('id_submit');
+                const hint = document.getElementById('id_hint');
+                const observer = new MutationObserver(function() {
+                    if (!submitBtn.classList.contains('disabled')) {
+                        hint.style.display = 'block';
+                    } else {
+                        hint.style.display = 'none';
+                    }
+                });
+                observer.observe(submitBtn, { attributes: true, attributeFilter: ['class'] });
+            });
+            </script>
+        </div>
     </div>
-    <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="id_lokasi" name="lokasi" placeholder="lokasi">
-        <label for="floatingInput">Lokasi</label>
-    </div>
-    <button id="id_submit" class="w-100 btn btn-lg btn-primary disabled" type="submit">Masuk</button>
+    <input type="hidden" id="id_lokasi" name="lokasi" placeholder="lokasi">
 </form>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -19,12 +34,12 @@ document.addEventListener('DOMContentLoaded', function() {
         navigator.geolocation.getCurrentPosition(function(position) {
             const lonlat = position.coords.longitude + ',' + position.coords.latitude;
             document.getElementById('lonlat').value = lonlat;
-            document.getElementById('id_submit').classList.remove('disabled');
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('location_name').value = data.display_name || '';
                     document.getElementById('id_lokasi').value = data.display_name || '';
+                    document.getElementById('id_submit').classList.remove('disabled');
                 });
         });
         function updateTime() {
@@ -32,10 +47,53 @@ document.addEventListener('DOMContentLoaded', function() {
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(now.getMinutes()).padStart(2, '0');
             document.getElementById('id_waktu').value = `${hh}:${mm}`;
+            const waktuInput = document.getElementById('id_waktu');
+            if (waktuInput) {
+                const [hh, mm] = waktuInput.value.replace(' ', ':').split(':');
+                const showColon = Math.floor(Date.now() / 1000) % 2 === 0;
+                waktuInput.value = showColon ? `${hh}:${mm}` : `${hh} ${mm}`;
+            }
         }
-        updateTime();
-        setInterval(updateTime, 60000);
-
     }
-});
+        updateTime();
+        setInterval(updateTime, 1000);
+        const submitBtn = document.getElementById('id_submit');
+        let holdTimer = null;
+
+        // Prevent default form submission on click
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+        });
+
+        submitBtn.addEventListener('mousedown', function(e) {
+            if (submitBtn.classList.contains('disabled')) return;
+            holdTimer = setTimeout(function() {
+            submitBtn.form.submit();
+            }, 2000);
+        });
+
+        submitBtn.addEventListener('mouseup', function(e) {
+            clearTimeout(holdTimer);
+        });
+
+        submitBtn.addEventListener('mouseleave', function(e) {
+            clearTimeout(holdTimer);
+        });
+
+        // For touch devices
+        submitBtn.addEventListener('touchstart', function(e) {
+            if (submitBtn.classList.contains('disabled')) return;
+            holdTimer = setTimeout(function() {
+            submitBtn.form.submit();
+            }, 2000);
+        });
+
+        submitBtn.addEventListener('touchend', function(e) {
+            clearTimeout(holdTimer);
+        });
+
+        submitBtn.addEventListener('touchcancel', function(e) {
+            clearTimeout(holdTimer);
+        });
+    });
 </script>

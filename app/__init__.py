@@ -107,13 +107,14 @@ def create_app():
     def homepage():
         """Halaman utama"""
         template_name = 'index.html'
+        today = datetime.datetime.now().date()
         ctx = {
             'title': 'Dashboard',
-            'now': datetime.datetime.now()
+            'now': datetime.datetime.now(),
+            'today': today,
         }
         if current_user.is_adm:
             template_name = 'index_adm.html'
-            today = datetime.datetime.now().date()
             first_day = today.replace(day=1)
             # Get all Kehadiran for this month
             kehadiran_qs = (Kehadiran
@@ -133,8 +134,6 @@ def create_app():
                 grouped[day].append(k)
 
             ctx['grouped_kehadiran'] = dict(grouped)
-        elif current_user.is_supervisi:
-            template_name = 'index_supervisi.html'
         elif current_user.perusahaan:
             template_name = 'index_perusahaan.html'
             kehadiran = Kehadiran.select().where(Kehadiran.username == current_user.username, pw.fn.DATE(Kehadiran.cdate) == datetime.datetime.now().date()).first()
@@ -146,6 +145,31 @@ def create_app():
                     form_absen = 'kehadiran/_form_absen_keluar.html'
             ctx['form_absen'] = form_absen                
             ctx['kehadiran'] = kehadiran
+            # Generate list of dates from the 1st of the month to today
+            first_day = today.replace(day=1)
+            date_list = [first_day + datetime.timedelta(days=i) for i in range((today - first_day).days + 1)]
+            ctx['date_list'] = date_list
+            rekap_kehadiran = (Kehadiran
+                .select()
+                .where(
+                    (Kehadiran.username == current_user.username) &
+                    (pw.fn.DATE(Kehadiran.cdate) >= first_day) &
+                    (pw.fn.DATE(Kehadiran.cdate) <= today)
+                )
+                .order_by(Kehadiran.cdate)
+            )
+            # Buat dictionary untuk mapping tanggal ke Kehadiran
+            kehadiran_dates  = dict([(k.masuk.date().day, k) for k in rekap_kehadiran])
+            rekap_kehadiran_list = []
+            for d in date_list:
+                if d.day in kehadiran_dates.keys():
+                    print(f"Found kehadiran for date: {d}")
+                    obj = kehadiran_dates[d.day].__dict__['__data__']
+                    obj.update({'tanggal': d})
+                else:
+                    obj = {'tanggal': d}
+                rekap_kehadiran_list.append(obj)
+            ctx['rekap_kehadiran'] = rekap_kehadiran_list
             
         return render_template(template_name, ctx=ctx)
     

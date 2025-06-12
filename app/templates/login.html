@@ -10,8 +10,10 @@
     <div class="container col-xl-10 col-xxl-8 px-4 py-5">
         <div class="row align-items-center g-lg-5 py-5">
           <div class="col-lg-7 text-center text-lg-start">
-            <h1 class="display-4 fw-bold lh-1 text-body-emphasis mb-3">Manajemen Proyek</h1>
-            <p class="col-lg-10 fs-4">Kehadiran personil proyek.</p>
+            <div class="d-flex flex-column align-items-center justify-content-center">
+              <img src="{{ url_for('static', filename='img/cty-logo.png') }}" alt="CTY Logo" class="mb-4" style="max-width: 200px;">
+              <p class="col-lg-10 fs-4 text-center">Kehadiran personil</p>
+            </div>
           </div>
           <div class="col-md-10 mx-auto col-lg-5">
             {% with messages = get_flashed_messages() %}

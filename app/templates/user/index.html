@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<table>
+    <thead>
+        <tr>
+            <th>Full Name</th>
+            <th>Perusahaan</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in ctx.users %}
+        <tr>
+            <td>{{ user.fullname }} {{ user.username }}</td>
+            <td>{{ user.perusahaan.nama }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

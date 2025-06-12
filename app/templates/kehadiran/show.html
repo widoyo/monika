@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Kehadiran {{ ctx.person.fullname or ctx.person.username }}</h1>
+    <a href="#" onclick="history.back(); return false;"><i class="bi bi-arrow-left"></i></a>
+    <p>Personil: <strong>{{ ctx.person.fullname or ctx.person.username }}</strong><br>
+    Perusahaan: {% if ctx.person.perusahaan %}<strong>{{ ctx.person.perusahaan.nama }}</strong>{% else %}-{% endif %}</p>
+    <h2>Bulan <strong>{{ ctx.today.strftime('%b %Y') }}</strong></h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Tanggal</th>
+                <th>Masuk</th>
+                <th>Keluar</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for kehadiran in ctx.kehadiran %}
+            <tr>
+                <td>{{ kehadiran.masuk.strftime('%d %b') }}</td>
+                <td>{{ kehadiran.masuk.strftime('%H:%M') }}</td>
+                <td>{% if kehadiran.keluar %}{{ kehadiran.keluar.strftime('%H:%M') }}{% endif %}</td>
+            </tr>
+        {% else %}
+            <li>Tidak ada data kehadiran.</li>
+        {% endfor %}
+
+        </tbody>
+    </table>
+{% endblock %}

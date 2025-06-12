@@ -4,15 +4,18 @@
     <input type="hidden" name="status" value="keluar">
     <input type="hidden" name="id_kehadiran" value="{{ ctx.kehadiran.id }}">
     <input type="hidden" name="location_name" id="location_name">
-    <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="id_waktu" name="waktu" placeholder="waktu">
-        <label for="floatingInput">Waktu</label>
+    <div class="row mb-3 align-items-center flex-nowrap px-3">
+        <div class="col-auto p-0">
+            <div class="">
+                <input type="text" class="form-control" id="id_waktu" name="waktu" placeholder="waktu" style="width: 120px; font-size: 2rem; font-family: monospace;" readonly>
+            </div>
+        </div>
+        <div class="col-auto p-0 ms-2">
+            <button id="id_submit" class="btn btn-primary disabled mb-1" type="submit">Keluar</button>
+            <small id="id_hint" class="text-secondary d-block" style="display: none;"><em>Tekan dan tahan 2 detik</em></small>
+        </div>
     </div>
-    <div class="form-floating mb-3">
-        <input type="text" class="form-control" id="id_lokasi" name="lokasi" placeholder="lokasi">
-        <label for="floatingInput">Lokasi</label>
-    </div>
-    <button id="id_submit" class="w-100 btn btn-lg btn-primary disabled" type="submit">Keluar</button>
+    <input type="hidden" id="id_lokasi" name="lokasi" placeholder="lokasi">
 </form>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -20,23 +23,54 @@ document.addEventListener('DOMContentLoaded', function() {
         navigator.geolocation.getCurrentPosition(function(position) {
             const lonlat = position.coords.longitude + ',' + position.coords.latitude;
             document.getElementById('lonlat').value = lonlat;
-            document.getElementById('id_submit').classList.remove('disabled');
             fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.coords.latitude}&lon=${position.coords.longitude}`)
                 .then(response => response.json())
                 .then(data => {
                     document.getElementById('location_name').value = data.display_name || '';
                     document.getElementById('id_lokasi').value = data.display_name || '';
                 });
+            document.getElementById('id_submit').classList.remove('disabled');
         });
+
+        let showColon = true;
         function updateTime() {
             const now = new Date();
             const hh = String(now.getHours()).padStart(2, '0');
             const mm = String(now.getMinutes()).padStart(2, '0');
-            document.getElementById('id_waktu').value = `${hh}:${mm}`;
+            const colon = showColon ? ':' : ' ';
+            document.getElementById('id_waktu').value = `${hh}${colon}${mm}`;
+            showColon = !showColon;
         }
         updateTime();
-        setInterval(updateTime, 60000);
-
+        setInterval(updateTime, 1000);
     }
+
+    // Touch and hold submit for 2 seconds to submit
+    let holdTimer = null;
+    const submitBtn = document.getElementById('id_submit');
+    const form = submitBtn.closest('form');
+
+    // Prevent default submit on click/tap
+    submitBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+    });
+
+    function startHold(e) {
+        if (submitBtn.classList.contains('disabled')) return;
+        holdTimer = setTimeout(function() {
+            form.submit();
+        }, 2000);
+    }
+
+    function cancelHold(e) {
+        clearTimeout(holdTimer);
+    }
+
+    submitBtn.addEventListener('mousedown', startHold);
+    submitBtn.addEventListener('touchstart', startHold);
+    submitBtn.addEventListener('mouseup', cancelHold);
+    submitBtn.addEventListener('mouseleave', cancelHold);
+    submitBtn.addEventListener('touchend', cancelHold);
+    submitBtn.addEventListener('touchcancel', cancelHold);
 });
 </script>

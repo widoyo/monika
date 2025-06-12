@@ -59,6 +59,14 @@ def create_app():
             fmt = '%d %b %Y'
         return value.strftime(fmt)
 
+    @app.template_filter('seconds_to_hm')
+    def seconds_to_hm_filter(value):
+        if not value or value <= 0:
+            return ''
+        hours = value // 3600
+        minutes = (value % 3600) // 60
+        return f"{hours:02d}:{minutes:02d}"
+
     from app.models import User, Kehadiran
     from peewee import DoesNotExist
 

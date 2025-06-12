@@ -3,8 +3,20 @@
 {% block content %}
     <h1>Kehadiran {{ ctx.person.fullname or ctx.person.username }}</h1>
     <a href="#" onclick="history.back(); return false;"><i class="bi bi-arrow-left"></i></a>
-    <p>Personil: <strong>{{ ctx.person.fullname or ctx.person.username }}</strong><br>
-    Perusahaan: {% if ctx.person.perusahaan %}<strong>{{ ctx.person.perusahaan.nama }}</strong>{% else %}-{% endif %}</p>
+    <table class="table w-auto" style="max-width:400px;">
+        <tr>
+            <td>Personil</td>
+            <td><strong>{{ ctx.person.fullname or ctx.person.username }}</strong></td>
+        </tr>
+        <tr>
+            <td>Jabatan</td>
+            <td>{% if ctx.person.jabatan %}<strong>{{ ctx.person.jabatan.nama }}</strong>{% else %}-{% endif %}</td>
+        </tr>
+        <tr>
+            <td>Perusahaan</td>
+            <td>{% if ctx.person.perusahaan %}<strong>{{ ctx.person.perusahaan.nama }}</strong>{% else %}-{% endif %}</td>
+        </tr>
+    </table>
     <h2>Bulan <strong>{{ ctx.today.strftime('%b %Y') }}</strong></h2>
     <table class="table table-striped">
         <thead>

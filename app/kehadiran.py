@@ -11,6 +11,8 @@ kehadiran_bp = Blueprint('kehadiran', __name__, url_prefix='/kehadiran')
 @login_required
 def user_kehadiran(username):
     """Kehadiran user by username"""
+    if not current_user.is_adm:
+        return redirect(url_for('homepage'))
     today = datetime.datetime.now().date()
     first_day = today.replace(day=1)
     person = User.get_or_none(User.username == username)
@@ -44,12 +46,16 @@ def index():
 @login_required
 def klok():
     """Kehadiran user"""
+    user_agent = request.headers.get('User-Agent')
+    ip_address = request.headers.get('X-Forwarded-For', request.remote_addr)
     if request.form.get('id_kehadiran'):
         # update
         absen = Kehadiran.get(int(request.form.get('id_kehadiran')))
         absen.keluar = datetime.datetime.now()
         absen.keterangan = request.form.get('lokasi')
         absen.ll = request.form.get('lonlat')
+        absen.ua_keluar = user_agent
+        absen.ip_keluar = ip_address
         absen.save()
         return redirect('/')
     absen = Kehadiran.create(
@@ -57,5 +63,8 @@ def klok():
         masuk=datetime.datetime.now(),
         status='masuk',
         keterangan=request.form.get('lokasi'),
-        ll=request.form.get('lonlat'))    
+        ll=request.form.get('lonlat'),
+        ip_masuk=ip_address,
+        ua_masuk=user_agent
+    )    
     return redirect(url_for('homepage'))

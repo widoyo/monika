@@ -136,8 +136,17 @@ class Kehadiran(BaseModel):
     status = pw.CharField(max_length=20) # masuk|keluar
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     keterangan = pw.TextField(null=True)
-    ip = pw.CharField(max_length=20, null=True)
-    user_agent = pw.CharField(max_length=100, null=True)
+    ip_masuk = pw.CharField(max_length=20, null=True)
+    ip_keluar = pw.CharField(max_length=20, null=True)
+    ua_masuk = pw.CharField(max_length=255, null=True) # user agent saat masuk
+    ua_keluar = pw.CharField(max_length=255, null=True) # user agent saat keluar
+    
+    @property
+    def durasi(self):
+        '''durasi kehadiran dalam detik'''
+        if not self.keluar or not self.masuk:
+            return 0
+        return int((self.keluar - self.masuk).total_seconds())
     
     class Meta:
         indexes = (

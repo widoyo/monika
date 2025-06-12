@@ -7,5 +7,5 @@ from app.models import Perusahaan
 
 @perusahaan_bp.route('/perusahaan', methods=['GET'])
 def list_perusahaan():
-    perusahaan_list = Perusahaan.query.all()
+    perusahaan_list = Perusahaan.select().order_by(Perusahaan.nama.asc())
     return render_template('perusahaan/index.html', perusahaan_list=perusahaan_list)

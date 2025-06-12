@@ -4,6 +4,7 @@
 <table class="table table-striped table-bordered">
     <thead>
         <tr>
+            <th>No</th>
             <th>Full Name</th>
             <th>Username</th>
             <th>Perusahaan</th>
@@ -12,6 +13,7 @@
     <tbody>
         {% for user in ctx.users %}
         <tr>
+            <td>{{ loop.index }}</td>
             <td>{{ user.fullname }}</td>
             <td>{{ user.username }}</td>
             <td>{{ user.perusahaan.nama }}</td>

@@ -52,8 +52,8 @@ def klok():
         # update
         absen = Kehadiran.get(int(request.form.get('id_kehadiran')))
         absen.keluar = datetime.datetime.now()
-        absen.keterangan = request.form.get('lokasi')
-        absen.ll = request.form.get('lonlat')
+        absen.lok_keluar = request.form.get('lokasi')
+        absen.ll_keluar = request.form.get('lonlat')
         absen.ua_keluar = user_agent
         absen.ip_keluar = ip_address
         absen.save()
@@ -62,8 +62,8 @@ def klok():
         username=current_user.username,
         masuk=datetime.datetime.now(),
         status='masuk',
-        keterangan=request.form.get('lokasi'),
-        ll=request.form.get('lonlat'),
+        lok_masuk=request.form.get('lokasi'),
+        ll_masuk=request.form.get('lonlat'),
         ip_masuk=ip_address,
         ua_masuk=user_agent
     )    

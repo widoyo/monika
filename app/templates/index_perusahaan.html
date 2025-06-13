@@ -12,7 +12,7 @@
         <p><i class="bi bi-clock me-1 text-success"></i> Masuk: <b>{{ ctx.kehadiran.masuk.strftime('%H:%M') }}</b> <span class="text-secondary" id="hour-ago"></span></p>
         {% endif %}
         {% if ctx.kehadiran.keluar %}
-        <p><i class="bi bi-clock me-1 text-danger"></i> Keluar: <b id="id-keluar">{{ ctx.kehadiran.keluar.strftime('%H:%M') }}</b></p>
+        <p><i class="bi bi-clock me-1 text-danger"></i> Keluar: <b id="id-keluar">{{ ctx.kehadiran.keluar.strftime('%H:%M') }}</b> ({{ ctx.kehadiran.durasi|seconds_to_hm }})</p>
         {% endif %}
         {% if ctx.form_absen != '' %}
         {% include ctx.form_absen %}

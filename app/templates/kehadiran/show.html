@@ -10,28 +10,35 @@
         </tr>
         <tr>
             <td>Jabatan</td>
-            <td>{% if ctx.person.jabatan %}<strong>{{ ctx.person.jabatan.nama }}</strong>{% else %}-{% endif %}</td>
+            <td>{% if ctx.person.jabatan %}<strong>{{ ctx.person.jabatan }}</strong>{% else %}-{% endif %}</td>
         </tr>
         <tr>
             <td>Perusahaan</td>
             <td>{% if ctx.person.perusahaan %}<strong>{{ ctx.person.perusahaan.nama }}</strong>{% else %}-{% endif %}</td>
         </tr>
     </table>
-    <h2>Bulan <strong>{{ ctx.today.strftime('%b %Y') }}</strong></h2>
-    <table class="table table-striped">
+    <h2 class="mt-5">Bulan <strong>{{ ctx.today.strftime('%b %Y') }}</strong></h2>
+    <table class="table table-striped table-bordered">
         <thead>
             <tr>
                 <th>Tanggal</th>
                 <th>Masuk</th>
                 <th>Keluar</th>
+                <th>Durasi</th>
             </tr>
         </thead>
         <tbody>
         {% for kehadiran in ctx.kehadiran %}
             <tr>
                 <td>{{ kehadiran.masuk.strftime('%d %b') }}</td>
-                <td>{{ kehadiran.masuk.strftime('%H:%M') }}</td>
-                <td>{% if kehadiran.keluar %}{{ kehadiran.keluar.strftime('%H:%M') }}{% endif %}</td>
+                <td>{{ kehadiran.masuk.strftime('%H:%M') }}<br>
+                    {% if kehadiran.lok_masuk %}<span class="small text-secondary" title="{{ kehadiran.lok_masuk }}">{{ kehadiran.lok_masuk|truncate(30, True, '...') }}</span>{% endif %}
+                </td>
+                <td>{% if kehadiran.keluar %}{{ kehadiran.keluar.strftime('%H:%M') }}<br>
+                    {% if kehadiran.lok_keluar %}<span class="small text-secondary" title="{{ kehadiran.lok_masuk }}">{{ kehadiran.lok_keluar|truncate(30, True, '...') }}</span>{% endif %}
+                    {% endif %}
+                </td>
+                <td>{{ kehadiran.durasi|seconds_to_hm }}</td>
             </tr>
         {% else %}
             <li>Tidak ada data kehadiran.</li>

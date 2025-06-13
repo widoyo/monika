@@ -136,6 +136,10 @@ class Kehadiran(BaseModel):
     status = pw.CharField(max_length=20) # masuk|keluar
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     keterangan = pw.TextField(null=True)
+    lok_masuk = pw.TextField(null=True) # lokasi saat masuk
+    lok_keluar = pw.TextField(null=True) # lokasi saat keluar
+    ll_masuk= pw.CharField(max_length=50, null=True) # lonlat saat masuk
+    ll_keluar = pw.CharField(max_length=50, null=True) # lonlat saat keluar
     ip_masuk = pw.CharField(max_length=20, null=True)
     ip_keluar = pw.CharField(max_length=20, null=True)
     ua_masuk = pw.CharField(max_length=255, null=True) # user agent saat masuk

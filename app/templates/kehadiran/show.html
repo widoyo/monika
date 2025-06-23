@@ -1,8 +1,23 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Kehadiran {{ ctx.person.fullname or ctx.person.username }}</h1>
-    <a href="#" onclick="history.back(); return false;"><i class="bi bi-arrow-left"></i></a>
+    <a href="#" onclick="history.back(); return false;" class="ms-3"><i class="bi bi-arrow-left"></i></a>
+    <div class="d-flex align-items-center mb-3">
+        <div class="dropdown">
+            <button class="btn dropdown-toggle p-0 fs-1 mb-0" type="button" id="personDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                Kehadiran {{ ctx.person.fullname or ctx.person.username }}
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="personDropdown">
+                {% for username, fullname in ctx.personils %}
+                    <li>
+                        <a class="dropdown-item" href="{{ url_for('kehadiran.user_kehadiran', username=username) }}">
+                            {{ fullname or username }}
+                        </a>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
     <table class="table w-auto" style="max-width:400px;">
         <tr>
             <td>Personil</td>
@@ -41,9 +56,8 @@
                 <td>{{ kehadiran.durasi|seconds_to_hm }}</td>
             </tr>
         {% else %}
-            <li>Tidak ada data kehadiran.</li>
+            <tr><td colspan="4">Tidak ada data kehadiran.</td></tr>
         {% endfor %}
-
         </tbody>
     </table>
 {% endblock %}

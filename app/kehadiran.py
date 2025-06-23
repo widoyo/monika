@@ -25,6 +25,7 @@ def user_kehadiran(username):
         'kehadiran': kehadiran,
         'title': f'Kehadiran {username}',
         'person': person,
+        'personils': [(u.username, u.fullname) for u in User.select().where(User.is_adm == False).order_by(User.fullname)],
         'today': today
     }
     return render_template('kehadiran/show.html', ctx=ctx)

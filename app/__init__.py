@@ -142,7 +142,7 @@ def create_app():
                 grouped[day].append(k)
 
             ctx['grouped_kehadiran'] = dict(grouped)
-        elif current_user.perusahaan:
+        else:
             template_name = 'index_perusahaan.html'
             kehadiran = Kehadiran.select().where(Kehadiran.username == current_user.username, pw.fn.DATE(Kehadiran.cdate) == datetime.datetime.now().date()).first()
             form_absen = ''
@@ -178,7 +178,7 @@ def create_app():
                     obj = {'tanggal': d}
                 rekap_kehadiran_list.append(obj)
             ctx['rekap_kehadiran'] = rekap_kehadiran_list
-            
+
         return render_template(template_name, ctx=ctx)
     
     return app

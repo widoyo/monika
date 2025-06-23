@@ -19,7 +19,7 @@
                     </thead>
                     <tbody>
                 {% for day, items in ctx.grouped_kehadiran|dictsort(reverse=True) %}
-                <tr class="table-secondary"><td colspan="5">{{ day.strftime('%d %b') }}</td></tr>
+                <tr class="table-secondary"><td colspan="5">{{ day.strftime('%d %b') }} -- Supervisi: {{ items|selectattr('is_supervisi')|list|length }} orang, Kontraktor: {{ items|selectattr('is_supervisi', 'equalto', False)|list|length }} orang</td></tr>
                     {% for k in items %}
                     <tr>
                     <td></td>

@@ -6,6 +6,7 @@
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title">Kehadiran {{ ctx.today.strftime('%b %Y') }}</h5>
+                <p><i class="bullet bg-success"></i> Konsultan <i class="bullet bg-warning"></i> Kontraktor</p>
                 <table class="table table-strip">
                     <thead>
                         <tr>
@@ -24,13 +25,13 @@
                 {% for day, items in ctx.grouped_kehadiran|dictsort(reverse=True) %}
                 <tr class="table-secondary">
                     <td colspan="5"><b>{{ day.strftime('%d %b') }}</b>
-                        <span class="ms-4 person-counter">Konsultan: 0 orang, Kontraktor: 0 orang</span>
+                        <span class="ms-4 person-counter"><i class="bullet bg-success"></i> : 0 orang, <i class="bullet bg-warning"></i> : 0 orang</span>
                     </td>
                 </tr>
                     {% for k in items %}
                     <tr>
                     <td style="width:20px;">{{ loop.index }}</td>
-                    <td style="width: 120px;"><i class="bullet bg-{%- if k.user.is_supervisi %}success user-konsultan{%- else %}warning user-kontraktor{%- endif %}"></i> <a href="/kehadiran/{{ k.username }}">{{ k.username }}</a></td>
+                    <td style="width: 150px;"><i class="bullet bg-{%- if k.user.is_supervisi %}success user-konsultan{%- else %}warning user-kontraktor{%- endif %}"></i> <a href="/kehadiran/{{ k.username }}">{{ k.username }}</a></td>
                     <td>{{ k.masuk|strftime("%H:%M") }}<br>
                         {% if k.lok_masuk %}<span class="small text-secondary text-lokasi" style="font-size: 8pt; display:none;" title="{{ k.lok_masuk }}">{{ k.lok_masuk|truncate(30, True, '...') }}</span>{% endif %}
                     </td>
@@ -69,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update only the person-counter span inside the header row
         const counterSpan = headerRow.querySelector('.person-counter');
         if (counterSpan) {
-            counterSpan.textContent = `Konsultan: ${konsultan} orang, Kontraktor: ${kontraktor} orang`;
+            counterSpan.innerHTML = '<i class="bullet bg-success"></i> : ' + konsultan + ' orang, <i class="bullet bg-warning"></i> : ' + kontraktor + ' orang';
         }
     });
 

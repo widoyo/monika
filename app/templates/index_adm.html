@@ -1,7 +1,6 @@
 {% extends 'base.html' %}
 
-{% block content %}
-
+{%- block content %}
 <div class="row">
     <div class="col">
         <div class="card mb-4">
@@ -14,21 +13,29 @@
                             <th>Person</th>
                             <th>Masuk</th>
                             <th>Keluar</th>
-                            <th></th>
+                            <th class="text-end">
+                                <button id="toggleLokasiBtn" class="btn btn-sm btn-outline-secondary" type="button" title="Tampilkan/sembunyikan lokasi">
+                                    <i class="bi bi-geo-alt-fill"></i>
+                                </button>
+                            </th>
                         </tr>
                     </thead>
                     <tbody>
                 {% for day, items in ctx.grouped_kehadiran|dictsort(reverse=True) %}
-                <tr class="table-secondary"><td colspan="5">{{ day.strftime('%d %b') }} -- Supervisi: {{ items|selectattr('is_supervisi')|list|length }} orang, Kontraktor: {{ items|selectattr('is_supervisi', 'equalto', False)|list|length }} orang</td></tr>
+                <tr class="table-secondary">
+                    <td colspan="5"><b>{{ day.strftime('%d %b') }}</b>
+                        <span class="ms-4 person-counter">Konsultan: 0 orang, Kontraktor: 0 orang</span>
+                    </td>
+                </tr>
                     {% for k in items %}
                     <tr>
-                    <td></td>
-                    <td><a href="/kehadiran/{{ k.username }}">{{ k.username }}</a></td>
+                    <td style="width:20px;">{{ loop.index }}</td>
+                    <td style="width: 120px;"><i class="bullet bg-{%- if k.user.is_supervisi %}success user-konsultan{%- else %}warning user-kontraktor{%- endif %}"></i> <a href="/kehadiran/{{ k.username }}">{{ k.username }}</a></td>
                     <td>{{ k.masuk|strftime("%H:%M") }}<br>
-                        {% if k.lok_masuk %}<span class="small text-secondary" title="{{ k.lok_masuk }}">{{ k.lok_masuk|truncate(30, True, '...') }}</span>{% endif %}
+                        {% if k.lok_masuk %}<span class="small text-secondary text-lokasi" style="font-size: 8pt; display:none;" title="{{ k.lok_masuk }}">{{ k.lok_masuk|truncate(30, True, '...') }}</span>{% endif %}
                     </td>
                     <td>{{ k.keluar|strftime("%H:%M") }}
-                        {% if k.lok_keluar %}<span class="small text-secondary" title="{{ k.lok_masuk }}">{{ k.lok_keluar|truncate(30, True, '...') }}</span>{% endif %}
+                        {% if k.lok_keluar %}<span class="small text-secondary text-lokasi" style="font-size: 8pt; display:none;" title="{{ k.lok_masuk }}">{{ k.lok_keluar|truncate(30, True, '...') }}</span>{% endif %}
                     </td>
                     <td></td>
                     </tr>
@@ -43,4 +50,43 @@
     </div>
     <div class="col">&nbsp;</div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // For each table-secondary row (group header)
+    document.querySelectorAll('tr.table-secondary').forEach(function(headerRow) {
+        // Find the next sibling rows until the next table-secondary or end of table
+        let konsultan = 0, kontraktor = 0;
+        let row = headerRow.nextElementSibling;
+        while (row && !row.classList.contains('table-secondary')) {
+            // Check for konsultan/kontraktor class in the bullet icon
+            let icon = row.querySelector('.bullet');
+            if (icon) {
+                if (icon.classList.contains('user-konsultan')) konsultan++;
+                if (icon.classList.contains('user-kontraktor')) kontraktor++;
+            }
+            row = row.nextElementSibling;
+        }
+        // Update only the person-counter span inside the header row
+        const counterSpan = headerRow.querySelector('.person-counter');
+        if (counterSpan) {
+            counterSpan.textContent = `Konsultan: ${konsultan} orang, Kontraktor: ${kontraktor} orang`;
+        }
+    });
+
+    // Toggle lokasi visibility
+    const toggleBtn = document.getElementById('toggleLokasiBtn');
+    let lokasiVisible = false;
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            lokasiVisible = !lokasiVisible;
+            document.querySelectorAll('.text-lokasi').forEach(function(el) {
+                el.style.display = lokasiVisible ? '' : 'none';
+            });
+            // Optionally toggle button style
+            toggleBtn.classList.toggle('btn-primary', lokasiVisible);
+            toggleBtn.classList.toggle('btn-outline-secondary', !lokasiVisible);
+        });
+    }
+});
+</script>
 {% endblock %}</div>

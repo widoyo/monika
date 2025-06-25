@@ -129,6 +129,7 @@ class Foto(BaseModel):
 
 class Kehadiran(BaseModel):
     '''Kehadiran user'''
+    user = pw.ForeignKeyField(User, backref='kehadiran', null=True)
     username = pw.CharField(max_length=20)
     ll = pw.CharField(max_length=50, null=True) # lokasi
     masuk = pw.DateTimeField(null=True)

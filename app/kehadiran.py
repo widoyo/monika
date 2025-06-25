@@ -60,6 +60,7 @@ def klok():
         absen.save()
         return redirect('/')
     absen = Kehadiran.create(
+        user=current_user,
         username=current_user.username,
         masuk=datetime.datetime.now(),
         status='masuk',

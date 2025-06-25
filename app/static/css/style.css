@@ -1,0 +1,9 @@
+.bullet {
+    display: inline-block; /* Allows setting width, height, and background */
+    width: 8px;            /* Bullet size */
+    height: 8px;           /* Bullet size */
+    border-radius: 50%;    /* Makes it a perfect circle */
+    margin: 0 4px;         /* Adds a small space around the bullet */
+    vertical-align: middle; /* Helps align the bullet vertically with surrounding text */
+    flex-shrink: 0;        /* Prevents shrinking if inside a flex container */
+}

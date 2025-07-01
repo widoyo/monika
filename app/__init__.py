@@ -115,30 +115,49 @@ def create_app():
     def homepage():
         """Halaman utama"""
         template_name = 'index.html'
+        s = request.args.get('s', None)
         today = datetime.datetime.now().date()
+        sampling = today
+        if s:
+            try:
+                sampling = datetime.datetime.strptime(s, '%Y-%m').date()
+            except ValueError:
+                pass
+            try:
+                sampling = datetime.datetime.strptime(s, '%Y/%m').date()
+            except ValueError:
+                pass
+        # jika sampling > today, paksakan samplaing = today
+        if sampling > today:
+            sampling = today
+        # jika sampling < bulan ini, paksakan tanggal sampling = akhir bulan bersangkutan
+        if sampling.month < today.month or sampling.year < today.year:
+            sampling = datetime.datetime(sampling.year, sampling.month, 1) + datetime.timedelta(days=31)
+            sampling = sampling.replace(day=1) - datetime.timedelta(days=1) 
         ctx = {
             'title': 'Dashboard',
             'now': datetime.datetime.now(),
             'today': today,
+            'sampling': sampling,
         }
         if current_user.is_adm:
             template_name = 'index_adm.html'
-            first_day = today.replace(day=1)
+            first_day = sampling.replace(day=1)
             # Get all Kehadiran for this month
             kehadiran_qs = (Kehadiran
                 .select()
                 .where(
-                    (pw.fn.DATE(Kehadiran.cdate) >= first_day) &
-                    (pw.fn.DATE(Kehadiran.cdate) <= today)
+                    (pw.fn.DATE(Kehadiran.masuk) >= first_day) &
+                    (pw.fn.DATE(Kehadiran.masuk) <= sampling)
                 )
-                .order_by(Kehadiran.cdate.desc())
+                .order_by(Kehadiran.masuk.desc())
             )
-
             # Group by day for template
             from collections import defaultdict
             grouped = defaultdict(list)
             for k in kehadiran_qs:
-                day = k.cdate.date()
+                print(k.masuk, k.username)
+                day = k.masuk.date()
                 grouped[day].append(k)
 
             ctx['grouped_kehadiran'] = dict(grouped)
@@ -154,15 +173,15 @@ def create_app():
             ctx['form_absen'] = form_absen                
             ctx['kehadiran'] = kehadiran
             # Generate list of dates from the 1st of the month to today
-            first_day = today.replace(day=1)
-            date_list = [first_day + datetime.timedelta(days=i) for i in range((today - first_day).days + 1)]
+            first_day = sampling.replace(day=1)
+            date_list = [first_day + datetime.timedelta(days=i) for i in range((sampling - first_day).days + 1)]
             ctx['date_list'] = date_list
             rekap_kehadiran = (Kehadiran
                 .select()
                 .where(
                     (Kehadiran.username == current_user.username) &
                     (pw.fn.DATE(Kehadiran.cdate) >= first_day) &
-                    (pw.fn.DATE(Kehadiran.cdate) <= today)
+                    (pw.fn.DATE(Kehadiran.cdate) <= sampling)
                 )
                 .order_by(Kehadiran.cdate)
             )

@@ -14,19 +14,38 @@ def user_kehadiran(username):
     if not current_user.is_adm:
         return redirect(url_for('homepage'))
     today = datetime.datetime.now().date()
-    first_day = today.replace(day=1)
+    s = request.args.get('s', None)
+    sampling = today
+    if s:
+        try:
+            sampling = datetime.datetime.strptime(s, '%Y-%m').date()
+        except ValueError:
+            pass
+        try:
+            sampling = datetime.datetime.strptime(s, '%Y/%m').date()
+        except ValueError:
+            pass
+    # jika sampling > today, paksakan samplaing = today
+    if sampling > today:
+        sampling = today
+    # jika sampling < bulan ini, paksakan tanggal sampling = akhir bulan bersangkutan
+    if sampling.month < today.month or sampling.year < today.year:
+        sampling = datetime.datetime(sampling.year, sampling.month, 1) + datetime.timedelta(days=31)
+        sampling = sampling.replace(day=1) - datetime.timedelta(days=1) 
+    first_day = sampling.replace(day=1)
     person = User.get_or_none(User.username == username)
     kehadiran = Kehadiran.select().where(
         (Kehadiran.username == username) &
         (fn.DATE(Kehadiran.cdate) >= first_day) &
-        (fn.DATE(Kehadiran.cdate) <= today)
+        (fn.DATE(Kehadiran.cdate) <= sampling)
     ).order_by(Kehadiran.cdate.desc())
     ctx = {
         'kehadiran': kehadiran,
         'title': f'Kehadiran {username}',
         'person': person,
         'personils': [(u.username, u.fullname) for u in User.select().where(User.is_adm == False).order_by(User.fullname)],
-        'today': today
+        'today': today,
+        'sampling': sampling,
     }
     return render_template('kehadiran/show.html', ctx=ctx)
 

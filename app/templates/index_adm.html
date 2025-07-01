@@ -5,7 +5,15 @@
     <div class="col">
         <div class="card mb-4">
             <div class="card-body">
-                <h5 class="card-title">Kehadiran {{ ctx.today.strftime('%b %Y') }}</h5>
+                <h5 class="card-title">Kehadiran {{ ctx.sampling.strftime('%b %Y') }}</h5>
+                <form method="get" class="mb-3 d-inline-block">
+                    <label for="monthPicker" class="form-label me-2 mb-0">Pilih Bulan:</label>
+                    <input type="month" id="monthPicker" name="s"
+                           class="form-control form-control-sm d-inline-block"
+                           style="width: 160px;"
+                           value="{{ ctx.sampling.strftime('%Y-%m') }}">
+                    <button type="submit" class="btn btn-sm btn-primary ms-2">Tampilkan</button>
+                </form>
                 <p><i class="bullet bg-success"></i> Konsultan <i class="bullet bg-warning"></i> Kontraktor</p>
                 <table class="table table-strip">
                     <thead>

@@ -19,7 +19,13 @@
         {% endif %}
         </div>
         <hr>
-        Kehadiran bulan <b>{{ ctx.today.strftime('%b %Y') }}</b>:
+        Kehadiran bulan <b>{{ ctx.sampling.strftime('%b %Y') }}</b>:
+        <form method="get" class="mb-3 d-flex align-items-center" style="gap: 0.5rem;">
+          <label for="month" class="mb-0">Pilih bulan:</label>
+          <input type="month" id="month" name="s" class="form-control form-control-sm" style="width: auto;"
+            value="{{ ctx.sampling.strftime('%Y-%m') }}">
+          <button type="submit" class="btn btn-primary btn-sm">Tampilkan</button>
+        </form>
         <table class="table table-striped">
           <thead>
             <tr>
@@ -32,7 +38,7 @@
           <tbody>
             {% for d in ctx.rekap_kehadiran|reverse %}
             <tr>
-              <td>{{ d.tanggal }}</td>
+                <td>{{ d.tanggal.strftime('%d') }}</td>
               <td>{% if d.masuk %}{{ d.masuk.strftime('%H:%M') }}{% endif %}</td>
               <td>{% if d.keluar %}{{ d.keluar.strftime('%H:%M') }}{% endif %}</td>
               <td>{{ d.durasi }}</td>

@@ -152,7 +152,7 @@ def create_app():
                 .dicts()
             )
             si = StringIO()
-            cw = csv.writer(si)
+            cw = csv.writer(si, delimiter=';')
             cw.writerow(['Kehadiran Bulan', sampling.strftime('%B %Y')])
             cw.writerow(['Nama', 'Hari Kerja', 'Jam Kerja', 'Jam/Hari'])
             for r in kehadiran_list:

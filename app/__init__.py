@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, url_for, redirect, flash
+from flask import Flask, render_template, request, url_for, redirect, flash, Response
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required  # type: ignore
 from flask_wtf.csrf import CSRFProtect
 from wtforms.validators import DataRequired
@@ -7,6 +7,8 @@ from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from flask_wtf import FlaskForm
 import datetime
 import peewee as pw
+import csv
+from io import StringIO
 
 from playhouse.flask_utils import FlaskDB
 
@@ -67,7 +69,7 @@ def create_app():
         minutes = (value % 3600) // 60
         return f"{hours:02d}:{minutes:02d}"
 
-    from app.models import User, Kehadiran
+    from app.models import User, Kehadiran  # Ensure Kehadiran is a peewee.Model subclass
     from peewee import DoesNotExist
 
     @login_manager.user_loader
@@ -108,6 +110,79 @@ def create_app():
     def logout():
         logout_user()
         return redirect('/')    
+    
+    
+    @app.route('/download')
+    @login_required
+    def download():
+        """Download file"""
+        kehadiran = request.args.get('kehadiran', None)
+        if kehadiran:
+            s = request.args.get('s', None)
+            if s:
+                try:
+                    sampling = datetime.datetime.strptime(s, '%Y-%m').date()
+                except ValueError:
+                    pass
+                try:
+                    sampling = datetime.datetime.strptime(s, '%Y/%m').date()
+                except ValueError:
+                    pass
+            else:
+                sampling = datetime.datetime.now().date()
+            # ambil data kehadiran untuk tahun dan bulan sesuai sampling
+            # Aggregate Kehadiran: group by username, count masuk, sum durasi (keluar - masuk)
+            # Make sure Kehadiran is a peewee.Model and has an 'id' field; otherwise, use the correct primary key field
+            kehadiran_list = (
+                Kehadiran
+                .select(
+                    Kehadiran.username,
+                    User.fullname.alias('nama'),
+                    pw.fn.COUNT(getattr(Kehadiran, 'id', Kehadiran._meta.primary_key)).alias('jumlah_masuk'),
+                    pw.fn.SUM(Kehadiran.keluar - Kehadiran.masuk).alias('total_durasi')
+                )
+                .join(User, on=(Kehadiran.username == User.username))
+                .where(
+                    (pw.fn.DATE_PART('year', Kehadiran.masuk) == sampling.year) & 
+                    (pw.fn.DATE_PART('month', Kehadiran.masuk) == sampling.month) & 
+                    (Kehadiran.keluar.is_null(False))
+                )
+                .group_by(Kehadiran.username, User.fullname)
+                .order_by(Kehadiran.username)
+                .dicts()
+            )
+            si = StringIO()
+            cw = csv.writer(si)
+            cw.writerow(['Kehadiran Bulan', sampling.strftime('%B %Y')])
+            cw.writerow(['Nama', 'Hari Kerja', 'Jam Kerja', 'Jam/Hari'])
+            for r in kehadiran_list:
+                total_durasi_jam = 0
+                # Convert total_durasi (timedelta or seconds) to hours:minutes format
+                total_durasi = r.get('total_durasi', 0) or 0
+                if isinstance(total_durasi, datetime.timedelta):
+                    total_seconds = int(total_durasi.total_seconds())
+                else:
+                    total_seconds = int(total_durasi)
+                hours = total_seconds // 3600
+                minutes = (total_seconds % 3600) // 60
+                durasi_str = f"{hours:02d}:{minutes:02d}"
+                # Calculate jam_per_hari as total_durasi divided by jumlah_masuk, formatted as HH:MM
+                jumlah_masuk = r.get('jumlah_masuk', 0) or 1
+                avg_per_hari_seconds = total_seconds // jumlah_masuk if jumlah_masuk else 0
+                jam_per_hari_hours = avg_per_hari_seconds // 3600
+                jam_per_hari_minutes = (avg_per_hari_seconds % 3600) // 60
+                jam_per_hari_str = f"{jam_per_hari_hours:02d}:{jam_per_hari_minutes:02d}"
+                
+                cw.writerow([r.get('nama', ''), r.get('jumlah_masuk', 0), durasi_str, jam_per_hari_str])
+
+            output = si.getvalue()
+            si.close()
+            return Response(
+                output,
+                mimetype='text/csv',
+                headers={'Content-Disposition': f'attachment;filename=kehadiran_{sampling.year}_{sampling.month:02d}.csv'}
+            )            
+        return render_template('download.html')
     
     
     @app.route('/')

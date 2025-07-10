@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{%- block content %}
+<div class="container">
+    <h1 class="mt-5">Download Data</h1>
+    <p class="lead">Silakan klik tautan di bawah ini untuk mengunduh Data Kehadiran yang tersedia.</p>
+    <ul class="list-unstyled">
+        <li>
+            <form method="get" action="{{ url_for('download') }}">
+                <input type="hidden" name="kehadiran" value="1">
+                <label for="month">Pilih Bulan:</label>
+                <input type="month" id="month" name="s">
+                <button type="submit" class="btn btn-primary">Download Kehadiran</button>
+            </form>
+        </li>
+</div>
+{%- endblock %}

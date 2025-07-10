@@ -4,6 +4,10 @@ Manajemen perlu dapat dengan mudah memantau perkembangan proyek yang sedang berj
 
 ## Product Backlog
 
+- [ ] (250702) Semua login user kantor, view Proyek grafik bandingan Rencana, Action-Plan dan Realisasi
+- [ ] (250703) Direksi input Action plan, mengubah nilai Rencana Bobot mingguan
+- [ ] (250704) Direksi input Realisasi, input Tanggal (lapor, dalam rentang minggu ini), Volume. Laporan dapat dilakukan 1 - 7 kali dalam seminggu
+- [ ] (250701) Admin perlu download Kehadiran dalam sebulan untuk semua personil (nama, banyak hadir, banyak jam hadir, banyak lupa pulang) 
 - [x] (250601) Admin perlu dapat melihat kehadiran setiap individu
 - [ ] (250602) Admin perlu mampu melihat kehadiran per individu dalam sebulan (rekap)
 - [ ] (250603) Pengguna dari tim proyek dapat melakukan absen Masuk dan Keluar, serta dapat melihat riwayat kehadiran

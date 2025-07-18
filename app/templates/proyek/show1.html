@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Native HTML <dialog> with Form</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+            background-color: #f8f9fa;
+            color: #343a40;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        /* Styling for the <dialog> element */
+        dialog {
+            border: none;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            max-width: 500px; /* Adjust width as needed */
+            width: 90%; /* Responsive width */
+        }
+
+        /* Styling for the dialog backdrop */
+        dialog::backdrop {
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(3px); /* Optional blur effect */
+        }
+
+        /* Basic form styling (can be enhanced with your preferred CSS framework or custom styles) */
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+
+        .form-control:focus {
+            border-color: #80bdff;
+            outline: 0;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+
+        .d-flex-justify-end {
+            display: flex;
+            justify-content: flex-end; /* Align buttons to the right */
+            gap: 10px; /* Space between buttons */
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Native HTML &lt;dialog&gt; Form</h1>
+        <p>This popup uses the native HTML <code>&lt;dialog&gt;</code> element, requiring no external JavaScript libraries like Bootstrap for its core functionality.</p>
+
+        <button id="openDialogBtn" class="btn-primary">Open Contact Form</button>
+
+        <dialog id="contactDialog">
+            <h2 style="margin-top: 0;">Contact Us</h2>
+            <form id="contactDialogForm">
+                <div class="form-group">
+                    <label for="dialogFullName">Full Name:</label>
+                    <input type="text" id="dialogFullName" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dialogEmail">Email:</label>
+                    <input type="email" id="dialogEmail" class="form-control" placeholder="your@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="dialogMessage">Your Message:</label>
+                    <textarea id="dialogMessage" class="form-control" rows="4" required></textarea>
+                </div>
+
+                <div class="d-flex-justify-end">
+                    <button type="button" id="closeDialogBtn" class="btn-secondary">Close</button>
+                    <button type="submit" class="btn-success">Send Message</button>
+                </div>
+            </form>
+        </dialog>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const openDialogBtn = document.getElementById('openDialogBtn');
+            const contactDialog = document.getElementById('contactDialog');
+            const closeDialogBtn = document.getElementById('closeDialogBtn');
+            const contactDialogForm = document.getElementById('contactDialogForm');
+            const dialogFullNameInput = document.getElementById('dialogFullName');
+
+            // --- Opening the dialog ---
+            openDialogBtn.addEventListener('click', () => {
+                // The showModal() method displays the dialog as a modal, blocking interaction with the rest of the page.
+                // It also handles focus management and the default backdrop.
+                contactDialog.showModal();
+                // Optionally, focus on the first input field once the dialog is shown
+                if (dialogFullNameInput) {
+                    dialogFullNameInput.focus();
+                }
+            });
+
+            // --- Closing the dialog ---
+            closeDialogBtn.addEventListener('click', () => {
+                // The close() method dismisses the dialog.
+                contactDialog.close();
+                // Reset form validation state if any
+                contactDialogForm.classList.remove('was-validated');
+                contactDialogForm.reset();
+            });
+
+            // Optional: Close dialog if clicking outside (on the backdrop)
+            // This is a common pattern for <dialog> elements
+            contactDialog.addEventListener('click', (event) => {
+                const rect = contactDialog.getBoundingClientRect();
+                const isInDialog = (rect.top <= event.clientY && event.clientY <= rect.top + rect.height &&
+                                    rect.left <= event.clientX && event.clientX <= rect.left + rect.width);
+                if (!isInDialog) {
+                    contactDialog.close();
+                    contactDialogForm.classList.remove('was-validated');
+                    contactDialogForm.reset();
+                }
+            });
+
+
+            // --- Form Submission Handling ---
+            contactDialogForm.addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                // Basic HTML5 form validation check
+                if (!contactDialogForm.checkValidity()) {
+                    event.stopPropagation(); // Prevent further propagation if invalid
+                    contactDialogForm.classList.add('was-validated'); // Add class for styling invalid fields
+                    return; // Stop function execution
+                }
+
+                // Collect form data
+                const fullName = document.getElementById('dialogFullName').value;
+                const email = document.getElementById('dialogEmail').value;
+                const message = document.getElementById('dialogMessage').value;
+
+                // For demonstration: show an alert
+                alert(`Form Submitted (Native Dialog)!
+                Full Name: ${fullName}
+                Email: ${email}
+                Message: ${message}`);
+
+                // In a real application, you would send this data via AJAX
+                // For example:
+                /*
+                fetch('/api/submit-contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ fullName, email, message }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Success:', data);
+                    contactDialog.close(); // Close dialog on success
+                    contactDialogForm.reset(); // Clear form
+                    contactDialogForm.classList.remove('was-validated'); // Remove validation styles
+                })
+                .catch((error) => {
+                    console.error('Error:', error);
+                    alert('An error occurred during submission.');
+                });
+                */
+
+                // After successful (mock) submission, close the dialog and reset the form
+                contactDialog.close();
+                contactDialogForm.reset();
+                contactDialogForm.classList.remove('was-validated'); // Remove validation styles
+            });
+        });
+    </script>
+</body>
+</html>

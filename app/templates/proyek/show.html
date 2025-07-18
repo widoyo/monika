@@ -1,23 +1,375 @@
 {% extends 'base.html' %}
-{% block content %}
-<table class="table">
-<thead>
-    <tr>
-        <th>Uraian</th>
-        <th>Satuan</th>
-        <th>Volume</th>
-        <th>Bobot (%)</th>
-    </tr>
-</thead>
-<tbody>
-    {% for p in ctx.proyek.pekerjaan_set %}
-    <tr>
-        <td><a href="/task/{{ p.id }}">{{ p.uraian }}</a></td>
-        <td>{{ p.satuan }}</td>
-        <td>{{ p.volume }}</td>
-        <td>{{ p.bobot }}</td>
-    </tr>
-    {% endfor %}
-</tbody>
-</table>
-{% endblock %}
+{%- block extra_head %}
+    <style>
+        body {
+            font-size: 0.9rem; /* Slightly smaller font for compactness */
+        }
+
+        .table-container {
+            position: relative;
+            max-height: 80vh; /* Limit vertical height if needed, enabling vertical scroll for the whole "table" */
+            overflow-y: auto; /* Enable vertical scroll for the entire table if content overflows */
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background-color: #f8f9fa; /* Light background for header */
+            z-index: 10; /* Ensure header stays on top */
+            border-bottom: 1px solid #dee2e6;
+            display: flex; /* Use flex to align header cells */
+            width: fit-content; /* Make header width fit content for horizontal scroll */
+        }
+
+        .sticky-column {
+            position: sticky;
+            left: 0;
+            background-color: white; /* Or your desired background color */
+            z-index: 5; /* Stays above scrollable content but below sticky header */
+            border-right: 1px solid #dee2e6;
+            min-width: 200px; /* Adjust fixed column width */
+            flex-shrink: 0; /* Prevent it from shrinking in flex container */
+            padding: 0.5rem;
+            display: flex; /* Use flex for vertical centering if needed */
+            align-items: center; /* Center content vertically */
+        }
+
+        .scrollable-wrapper {
+            overflow-x: auto; /* This div handles the horizontal scrolling */
+            width: 100%; /* Take full width of parent */
+            display: flex; /* Use flexbox to keep all rows in one line for horizontal scroll */
+            flex-direction: column; /* Stack rows vertically within scrollable wrapper */
+        }
+
+        .table-row {
+            display: flex; /* Use flexbox for each row to align columns */
+            width: fit-content; /* Allow row to expand horizontally */
+            min-width: 100%; /* Ensure row fills scrollable wrapper */
+        }
+
+        .table-cell {
+            min-width: 120px; /* Adjust as needed for your week columns */
+            flex-shrink: 0; /* Prevent cells from shrinking */
+            padding: 0.5rem;
+            border-bottom: 1px solid #dee2e6;
+            border-left: 1px solid #dee2e6;
+            display: flex;
+            align-items: center; /* Center content vertically */
+            justify-content: center; /* Center content horizontally */
+        }
+
+        .table-cell.first-column-cell {
+            border-left: none; /* No left border for the first cell in a row */
+        }
+
+        .header-cell {
+            font-weight: bold;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .progress-indicator {
+            height: 10px;
+            width: 100%; /* Ensure progress bar takes full width of cell */
+            margin: 0; /* Remove default margin */
+        }
+
+        .progress-bar {
+            font-size: 0.7rem; /* Smaller text for progress percentage */
+        }
+
+        /* Custom styles to adjust padding/margin as needed */
+        .tree-node-content {
+            display: flex;
+            align-items: center;
+            padding: 5px 0;
+        }
+        .tree-icon {
+            margin-right: 5px;
+            cursor: pointer;
+            width: 1em; /* Ensure consistent width for icons */
+            text-align: center;
+        }
+        .list-unstyled.tree-root {
+            padding-left: 0; /* Remove default list padding for root */
+        }
+        .nested-list {
+            padding-left: 10px; /* Indent children */
+        }
+        /* Hide caret for leaf nodes */
+        .leaf-node .tree-icon {
+            visibility: hidden;
+        }        
+    </style>
+    {% endblock %}
+{%- block content %}
+        {% macro render_tree_node(node, level=0) %}
+            <li class="tree-node list-group-item border-0 p-0">
+                <div class="tree-node-content ps-{{ level * 3 }}">
+                    {% if node.children %}
+                    {% else %}
+                        <span class="tree-icon leaf-node">
+                            <i class="bi bi-dot"></i> </span>
+                    {% endif %}
+                    <span class="{%- if level==0 %}fw-bold{% else %}fw-xs{% endif %}"><a href="/task/{{ node.id }}">{{ node.uraian }}</a></span> <small class="text-muted ms-2">(ID: {{ node.id }})</small>
+                </div>
+                {% if node.children %}
+                    <ul class="list-unstyled nested-list" id="collapse-{{ node.id }}">
+                        {% for child in node.children %}
+                            {{ render_tree_node(child, level + 1) }}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            </li>
+        {% endmacro %}
+
+
+    <div class="container-fluid mt-4">
+        <span style="font-size:10pt" class="d-inline-flex mb-0 px-1 py-0 text-secondary-emphasis bg-secondary-subtle">PROYEK</span>
+        <h2>{{ ctx.proyek.nama }}</h2>
+
+        <ul class="list-unstyled tree-root">
+            {% for root_node in ctx.pekerjaan_tree %}
+                {{ render_tree_node(root_node) }}
+            {% endfor %}
+        </ul>
+
+        <div class="d-flex table-main-wrapper">
+            <div class="sticky-column-wrapper">
+                <div class="sticky-header">
+                    <div class="sticky-column header-cell">Uraian</div>
+                </div>
+                <div class="sticky-data">
+                    <div class="table-row">
+                        <div class="sticky-column">Develop Feature A</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="sticky-column">Refactor Database Module</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="sticky-column">Design UI/UX</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="sticky-column">Implement Authentication</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="sticky-column">Write Unit Tests</div>
+                    </div>
+                    <div class="table-row">
+                        <div class="sticky-column">Deploy to Staging</div>
+                    </div>
+                    </div>
+            </div>
+
+            <div class="scrollable-wrapper">
+                <div class="sticky-header">
+                    <div class="table-cell header-cell">Week 1</div>
+                    <div class="table-cell header-cell">Week 2</div>
+                    <div class="table-cell header-cell">Week 3</div>
+                    <div class="table-cell header-cell">Week 4</div>
+                    <div class="table-cell header-cell">Week 5</div>
+                    <div class="table-cell header-cell">Week 6</div>
+                    <div class="table-cell header-cell">Week 7</div>
+                    <div class="table-cell header-cell">Week 8</div>
+                    <div class="table-cell header-cell">Week 9</div>
+                    <div class="table-cell header-cell">Week 10</div>
+                    <div class="table-cell header-cell">Week 11</div>
+                    <div class="table-cell header-cell">Week 12</div>
+                    <div class="table-cell header-cell">Week 13</div>
+                    <div class="table-cell header-cell">Week 14</div>
+                    <div class="table-cell header-cell">Week 15</div>
+                    </div>
+
+                <div class="scrollable-data-body">
+                    <div class="table-row">
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 20%;" aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">20%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0" aria-valuemax="100">30%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-danger" role="progressbar" style="width: 10%;" aria-valuenow="10" aria-valuemin="0" aria-valuemax="100">10%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 40%;" aria-valuenow="40" aria-valuemin="0" aria-valuemax="100">40%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 80%;" aria-valuenow="80" aria-valuemin="0" aria-valuemax="100">80%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                    </div>
+
+                    <div class="table-row">
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-primary" role="progressbar" style="width: 25%;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100">25%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: 50%;" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">50%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-warning" role="progressbar" style="width: 75%;" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">75%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">
+                            <div class="progress progress-indicator">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                            </div>
+                        </div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                        <div class="table-cell">-</div>
+                    </div>
+                    </div>
+            </div>
+        </div>
+    </div>
+{%- endblock %}

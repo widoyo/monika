@@ -1,8 +1,40 @@
 {% extends 'base.html' %}
 {% block content %}
+<h1>Daftar Proyek</h1>
+<p>Berikut adalah daftar proyek yang terdaftar di sistem.</p>
+<div class="d-flex justify-content-end mb-3">
+</div>
+<table class="table table-striped table-bordered">
+    <thead>
+        <tr>
+            <th>No</th>
+            <th>Nama Proyek</th>
+            <th>Lokasi</th>
+            <th>Perusahaan</th>
+            <th>Mulai</th>
+            <th>Selesai</th>
+            <th>Bobot</th>
+            <th>Durasi</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
 {% for p in ctx.proyeks %}
-{{ p.nama }}
+<tr>
+    <td>{{ loop.index }}</td>
+    <td><a href="{{ url_for('proyek.show', id=p.id ) }}">{{ p.nama }}</a></td>
+    <td>{{ p.lokasi }}</td>
+    <td>{{ p.perusahaan.nama if p.perusahaan else '-' }}</td>
+    <td>{{ p.mulai.strftime('%d %b %Y') if p.mulai else '-' }}</td>
+    <td>{{ p.selesai.strftime('%d %b %Y') if p.selesai else '-' }}</td>
+    <td>{{ p.bobot }}%</td>
+    <td>{{ p.durasi }} minggu</td>
+    <td>
+    </td>
+</tr>
 {% else %}
 belum ada proyek
 {% endfor %}
+    </tbody>
+</table>
 {% endblock %}

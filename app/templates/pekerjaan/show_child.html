@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{%- block content %}
+    {% macro render_tree_node(node, level=0) %}
+        <li class="tree-node list-group-item border-0 p-0">
+            <div class="tree-node-content ps-{{ level * 3 }}">
+                {% if node.children %}
+                {% else %}
+                    <span class="tree-icon leaf-node">
+                        <i class="bi bi-dot"></i> </span>
+                {% endif %}
+                <span class="{%- if level==0 %}fw-bold{% else %}fw-xs{% endif %}"><a href="/task/{{ node.id }}">{{ node.uraian }}</a> {{ node.waktu_mulai }} {{ node.minggu_mulai }} durasi: {{ node.durasi }}</span> <small class="text-muted ms-2">(ID: {{ node.id }})</small>
+            </div>
+            {% if node.children %}
+                <ul class="list-unstyled nested-list" id="collapse-{{ node.id }}">
+                    {% for child in node.children %}
+                        {{ render_tree_node(child, level + 1) }}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </li>
+    {% endmacro %}
+
+<p><a href="/proyek/{{ ctx.task.proyek_id }}">{{ ctx.task.proyek.nama }}</a></p>
+<div>
+    <small class="d-inline-flex badge fw-normal text-secondary bg-secondary-subtle px-2 py-1">PEKERJAAN</small>
+    <h2>{{ ctx.task.uraian}} Minggu Mulai = {{ ctx.awal_minggu }}</h2>
+</div>
+        <ul class="list-unstyled tree-root">
+            {% for root_node in ctx.pekerjaan_tree %}
+                {{ render_tree_node(root_node) }}
+            {% endfor %}
+        </ul>
+{%- endblock %}

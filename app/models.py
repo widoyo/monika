@@ -5,6 +5,40 @@ from bcrypt import checkpw, hashpw, gensalt
 import peewee as pw
 from app import db_wrapper
 
+
+# Function to build the tree structure
+def build_tree(items):
+    # Create a dictionary to easily access items by their ID
+    item_map = {item.id: {
+        'id': item.id, 
+        'uraian': item.uraian, 
+        'is_leaf': item.is_leaf, 
+        'waktu_mulai': item.waktu_mulai, 
+        'durasi': item.durasi,
+        'minggu_mulai': item.minggu_mulai,
+        'children': []} for item in items}
+    # Identify root items and link children to their parents
+    roots = []
+    for item in items:
+        if item.parent:
+            parent_id = item.parent.id
+            if parent_id in item_map:
+                item_map[parent_id]['children'].append(item_map[item.id])
+            else:
+                # Handle cases where a parent might not be in the current `items` list
+                # (e.g., if you're only fetching a subset)
+                # For a complete tree, all parents should be present.
+                roots.append(item_map[item.id])
+        else:
+            roots.append(item_map[item.id])
+
+    # Sort children for consistent display
+    for item_data in item_map.values():
+        item_data['children'].sort(key=lambda x: x['uraian']) # Sort by uraian
+    #roots.sort(key=lambda x: x['uraian']) # Sort root items
+
+    return roots
+
 class BaseModel(db_wrapper.Model):
     class Meta:
         database = db_wrapper.database  # Ensure db_wrapper has a 'database' attribute
@@ -26,56 +60,6 @@ class UnitOrg(BaseModel):
     cdate = pw.DateTimeField(default=datetime.datetime.now)
     mdate = pw.DateTimeField(null=True)
     
-class Proyek(BaseModel):
-    nama = pw.CharField(max_length=100)
-    unit = pw.ForeignKeyField(UnitOrg)
-    cdate = pw.DateTimeField(default=datetime.datetime.now)
-    mdate = pw.DateTimeField(null=True)
-    cuser = pw.CharField(null=True)
-    muser = pw.CharField(null=True)
-
-class Pekerjaan(BaseModel):
-    proyek = pw.ForeignKeyField(Proyek)
-    uraian = pw.CharField(max_length=250)
-    satuan = pw.CharField(max_length=20, null=True)
-    volume = pw.FloatField(default=0)
-    bobot = pw.FloatField(default=0)
-    pic = pw.CharField(max_length=20, null=True) # diisi 'username'
-    cdate = pw.DateTimeField(default=datetime.datetime.now)
-    mdate = pw.DateTimeField(null=True)
-    cuser = pw.CharField(null=True)
-    muser = pw.CharField(null=True)
-    
-class RencanaKontrak(BaseModel):
-    pekerjaan = pw.ForeignKeyField(Pekerjaan)
-    waktu = pw.DateField()
-    volume = pw.FloatField()
-    cdate = pw.DateTimeField(default=datetime.datetime.now)
-    mdate = pw.DateTimeField(null=True)
-    cuser = pw.CharField(null=True)
-    muser = pw.CharField(null=True)
-
-class RencanaPelaksanaan(BaseModel):
-    pekerjaan = pw.ForeignKeyField(Pekerjaan)
-    waktu = pw.DateField()
-    volume = pw.FloatField()
-    cdate = pw.DateTimeField(default=datetime.datetime.now)
-    mdate = pw.DateTimeField(null=True)
-    cuser = pw.CharField(null=True)
-    muser = pw.CharField(null=True)
-    
-class Realisasi(BaseModel):
-    pekerjaan = pw.ForeignKeyField(Pekerjaan)
-    waktu = pw.DateField()
-    volume = pw.FloatField()
-    cdate = pw.DateTimeField(default=datetime.datetime.now)
-    mdate = pw.DateTimeField(null=True)
-    cuser = pw.CharField(null=True)
-    muser = pw.CharField(null=True)
-
-    class Meta:
-        pass
-        
 class User(BaseModel, UserMixin):
     username = pw.CharField(max_length=20, unique=True, index=True)
     password = pw.CharField(max_length=100)
@@ -96,6 +80,93 @@ class User(BaseModel, UserMixin):
         self.password = hashpw(password.encode('utf-8'), gensalt())
         self.save() # 
 
+class Proyek(BaseModel):
+    nama = pw.CharField(max_length=100)
+    unit = pw.ForeignKeyField(UnitOrg)
+    direksi = pw.ForeignKeyField(User, null=True, backref='proyek_direksi')
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
+    cuser = pw.CharField(null=True)
+    muser = pw.CharField(null=True)
+
+class Pekerjaan(BaseModel):
+    '''Pekerjaan dalam proyek'''
+    proyek = pw.ForeignKeyField(Proyek, null=True, backref='pekerjaan')
+    parent = pw.ForeignKeyField('self', null=True, backref='children')
+    uraian = pw.CharField(max_length=250)
+    satuan = pw.CharField(max_length=20, null=True)
+    volume = pw.FloatField(default=0)
+    waktu_mulai = pw.DateField(null=True) # tanggal mulai pekerjaan
+    bobot = pw.FloatField(default=0)
+    durasi = pw.IntegerField(default=0) # dalam minggu
+    pic = pw.CharField(max_length=20, null=True) # diisi 'username'
+    rencana = pw.TextField(null=True) # rencana pelaksanaan pekerjaan, JSON format
+    realisasi = pw.TextField(null=True) # realisasi pelaksanaan pekerjaan, JSON format
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
+    cuser = pw.CharField(null=True)
+    muser = pw.CharField(null=True)
+    
+    @property
+    def is_leaf(self):
+        '''Apakah pekerjaan ini adalah leaf node (tidak memiliki anak)'''
+        return not self.children.exists()
+    
+    @property
+    def is_root(self):
+        '''Apakah pekerjaan ini adalah root node (tidak memiliki parent)'''
+        return self.parent is None
+    
+    @property
+    def is_has_children(self):
+        '''Apakah punya sub pekerjaan'''
+        return self.children.exists()
+    
+    @property
+    def minggu_mulai(self):
+        try:
+            return self.waktu_mulai.isocalendar()[1]
+        except AttributeError:
+            return None
+    
+    @property
+    def waktu_akhir(self):
+        '''Tanggal akhir pekerjaan, berdasarkan waktu_mulai dan durasi'''
+        if self.waktu_mulai and self.durasi:
+            return self.waktu_mulai + datetime.timedelta(weeks=self.durasi)
+        return None
+
+class RencanaKontrak(BaseModel):
+    pekerjaan = pw.ForeignKeyField(Pekerjaan)
+    waktu = pw.DateField()
+    volume = pw.FloatField()
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
+    cuser = pw.CharField(null=True)
+    muser = pw.CharField(null=True)
+
+class RencanaPelaksanaan(BaseModel):
+    '''Rencana Pelaksanaan Pekerjaan'''
+    pekerjaan = pw.ForeignKeyField(Pekerjaan)
+    waktu = pw.DateField() # waktu mulai
+    bobot = pw.FloatField() # Target bobot pekerjaan
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
+    cuser = pw.CharField(null=True)
+    muser = pw.CharField(null=True)
+    
+class Realisasi(BaseModel):
+    pekerjaan = pw.ForeignKeyField(Pekerjaan)
+    waktu = pw.DateField() # tanggal pelaporan relaisasi
+    volume = pw.FloatField()
+    cdate = pw.DateTimeField(default=datetime.datetime.now)
+    mdate = pw.DateTimeField(null=True)
+    cuser = pw.CharField(null=True)
+    muser = pw.CharField(null=True)
+
+    class Meta:
+        pass
+        
 class Notes(BaseModel):
     '''Komentar/Catatan terhadap'''
     username = pw.CharField(max_length=20)
